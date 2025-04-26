@@ -1,25 +1,56 @@
-// Abstract class for TodoItemFormatter
+/**
+ * Abstract class for formatting todo items.
+ * Provides methods to format task descriptions, due dates, and status.
+ */
 class TodoItemFormatter {
+    /**
+     * Formats the task description, truncating it if it exceeds 14 characters.
+     * @param {string} task - The task description to format.
+     * @returns {string} The formatted task description.
+     */
     formatTask(task) {
         return task.length > 14 ? task.slice(0, 14) + "..." : task;
     }
 
+    /**
+     * Formats the due date, returning a default message if no date is provided.
+     * @param {string} dueDate - The due date in string format.
+     * @returns {string} The formatted due date or "No due date" if none.
+     */
     formatDueDate(dueDate) {
         return dueDate || "No due date";
     }
 
+    /**
+     * Formats the completion status of a task.
+     * @param {boolean} completed - The completion status of the task.
+     * @returns {string} "Completed" if true, "Pending" if false.
+     */
     formatStatus(completed) {
         return completed ? "Completed" : "Pending";
     }
 }
 
-// Class responsible for managing Todo items
+/**
+ * Class responsible for managing todo items, including adding, editing, and filtering tasks.
+ * Stores todos in localStorage.
+ */
 class TodoManager {
+    /**
+     * Creates a new TodoManager instance.
+     * @param {TodoItemFormatter} todoItemFormatter - Formatter for todo items.
+     */
     constructor(todoItemFormatter) {
         this.todos = JSON.parse(localStorage.getItem("todos")) || [];
         this.todoItemFormatter = todoItemFormatter;
     }
 
+    /**
+     * Adds a new todo item to the list.
+     * @param {string} task - The task description.
+     * @param {string} dueDate - The due date for the task.
+     * @returns {Object} The newly created todo item.
+     */
     addTodo(task, dueDate) {
         const newTodo = {
             id: this.getRandomId(),
@@ -33,6 +64,12 @@ class TodoManager {
         return newTodo;
     }
 
+    /**
+     * Edits an existing todo item by ID.
+     * @param {string} id - The ID of the todo to edit.
+     * @param {string} updatedTask - The updated task description.
+     * @returns {Object|undefined} The updated todo item or undefined if not found.
+     */
     editTodo(id, updatedTask) {
         const todo = this.todos.find((t) => t.id === id);
         if (todo) {
@@ -42,11 +79,19 @@ class TodoManager {
         return todo;
     }
 
+    /**
+     * Deletes a todo item by ID.
+     * @param {string} id - The ID of the todo to delete.
+     */
     deleteTodo(id) {
         this.todos = this.todos.filter((todo) => todo.id !== id);
         this.saveToLocalStorage();
     }
 
+    /**
+     * Toggles the completion status of a todo item.
+     * @param {string} id - The ID of the todo to toggle.
+     */
     toggleTodoStatus(id) {
         const todo = this.todos.find((t) => t.id === id);
         if (todo) {
@@ -55,6 +100,9 @@ class TodoManager {
         }
     }
 
+    /**
+     * Clears all todo items.
+     */
     clearAllTodos() {
         if (this.todos.length > 0) {
             this.todos = [];
@@ -62,6 +110,11 @@ class TodoManager {
         }
     }
 
+    /**
+     * Filters todos based on status.
+     * @param {string} status - The status to filter by ("all", "pending", "completed").
+     * @returns {Array} The filtered list of todos.
+     */
     filterTodos(status) {
         switch (status) {
             case "all":
@@ -75,6 +128,10 @@ class TodoManager {
         }
     }
 
+    /**
+     * Generates a random ID for a todo item.
+     * @returns {string} A random string ID.
+     */
     getRandomId() {
         return (
             Math.random().toString(36).substring(2, 15) +
@@ -82,13 +139,23 @@ class TodoManager {
         );
     }
 
+    /**
+     * Saves the current todos to localStorage.
+     */
     saveToLocalStorage() {
         localStorage.setItem("todos", JSON.stringify(this.todos));
     }
 }
 
-// Class responsible for managing the UI and handling events
+/**
+ * Class responsible for managing the user interface and handling events.
+ */
 class UIManager {
+    /**
+     * Creates a new UIManager instance.
+     * @param {TodoManager} todoManager - The todo manager instance.
+     * @param {TodoItemFormatter} todoItemFormatter - Formatter for todo items.
+     */
     constructor(todoManager, todoItemFormatter) {
         this.todoManager = todoManager;
         this.todoItemFormatter = todoItemFormatter;
@@ -103,25 +170,24 @@ class UIManager {
         this.showAllTodos();
     }
 
+    /**
+     * Adds event listeners for UI interactions.
+     */
     addEventListeners() {
-        // Event listener for adding a new todo
         this.addBtn.addEventListener("click", () => {
             this.handleAddTodo();
         });
 
-        // Event listener for pressing Enter key in the task input
         this.taskInput.addEventListener("keyup", (e) => {
             if (e.keyCode === 13 && this.taskInput.value.length > 0) {
                 this.handleAddTodo();
             }
         });
 
-        // Event listener for deleting all todos
         this.deleteAllBtn.addEventListener("click", () => {
             this.handleClearAllTodos();
         });
 
-        // Event listeners for filter buttons
         const filterButtons = document.querySelectorAll(".todos-filter li");
         filterButtons.forEach((button) => {
             button.addEventListener("click", () => {
@@ -131,6 +197,9 @@ class UIManager {
         });
     }
 
+    /**
+     * Handles adding a new todo item.
+     */
     handleAddTodo() {
         const task = this.taskInput.value;
         const dueDate = this.dateInput.value;
@@ -145,19 +214,28 @@ class UIManager {
         }
     }
 
+    /**
+     * Handles clearing all todos.
+     */
     handleClearAllTodos() {
         this.todoManager.clearAllTodos();
         this.showAllTodos();
         this.showAlertMessage("All todos cleared successfully", "success");
     }
 
+    /**
+     * Displays all todos.
+     */
     showAllTodos() {
         const todos = this.todoManager.filterTodos("all");
         this.displayTodos(todos);
     }
 
+    /**
+     * Renders the list of todos to the UI.
+     * @param {Array} todos - The list of todos to display.
+     */
     displayTodos(todos) {
-
         this.todosListBody.innerHTML = "";
 
         if (todos.length === 0) {
@@ -172,19 +250,13 @@ class UIManager {
             <td>${this.todoItemFormatter.formatDueDate(todo.dueDate)}</td>
             <td>${this.todoItemFormatter.formatStatus(todo.completed)}</td>
             <td>
-              <button class="btn btn-warning btn-sm" onclick="uiManager.handleEditTodo('${
-                todo.id
-            }')">
+              <button class="btn btn-warning btn-sm" onclick="uiManager.handleEditTodo('${todo.id}')">
                 <i class="bx bx-edit-alt bx-bx-xs"></i>    
               </button>
-              <button class="btn btn-success btn-sm" onclick="uiManager.handleToggleStatus('${
-                todo.id
-            }')">
+              <button class="btn btn-success btn-sm" onclick="uiManager.handleToggleStatus('${todo.id}')">
                 <i class="bx bx-check bx-xs"></i>
               </button>
-              <button class="btn btn-error btn-sm" onclick="uiManager.handleDeleteTodo('${
-                todo.id
-            }')">
+              <button class="btn btn-error btn-sm" onclick="uiManager.handleDeleteTodo('${todo.id}')">
                 <i class="bx bx-trash bx-xs"></i>
               </button>
             </td>
@@ -193,8 +265,10 @@ class UIManager {
         });
     }
 
-
-
+    /**
+     * Handles editing a todo item.
+     * @param {string} id - The ID of the todo to edit.
+     */
     handleEditTodo(id) {
         const todo = this.todoManager.todos.find((t) => t.id === id);
         if (todo) {
@@ -213,25 +287,39 @@ class UIManager {
         }
     }
 
-
+    /**
+     * Handles toggling the status of a todo item.
+     * @param {string} id - The ID of the todo to toggle.
+     */
     handleToggleStatus(id) {
         this.todoManager.toggleTodoStatus(id);
         this.showAllTodos();
     }
 
+    /**
+     * Handles deleting a todo item.
+     * @param {string} id - The ID of the todo to delete.
+     */
     handleDeleteTodo(id) {
         this.todoManager.deleteTodo(id);
         this.showAlertMessage("Todo deleted successfully", "success");
         this.showAllTodos();
     }
 
-
+    /**
+     * Handles filtering todos by status.
+     * @param {string} status - The status to filter by.
+     */
     handleFilterTodos(status) {
         const filteredTodos = this.todoManager.filterTodos(status);
         this.displayTodos(filteredTodos);
     }
 
-
+    /**
+     * Displays an alert message to the user.
+     * @param {string} message - The message to display.
+     * @param {string} type - The type of alert ("success" or "error").
+     */
     showAlertMessage(message, type) {
         const alertBox = `
   <div class="alert alert-${type} shadow-lg mb-5 w-full">
@@ -250,14 +338,24 @@ class UIManager {
     }
 }
 
-// Class responsible for managing the theme switcher
+/**
+ * Class responsible for managing theme switching.
+ */
 class ThemeSwitcher {
+    /**
+     * Creates a new ThemeSwitcher instance.
+     * @param {NodeList} themes - The list of theme elements.
+     * @param {HTMLElement} html - The HTML element to apply themes to.
+     */
     constructor(themes, html) {
         this.themes = themes;
         this.html = html;
         this.init();
     }
 
+    /**
+     * Initializes the theme switcher by applying saved theme.
+     */
     init() {
         const theme = this.getThemeFromLocalStorage();
         if (theme) {
@@ -267,6 +365,9 @@ class ThemeSwitcher {
         this.addThemeEventListeners();
     }
 
+    /**
+     * Adds event listeners for theme selection.
+     */
     addThemeEventListeners() {
         this.themes.forEach((theme) => {
             theme.addEventListener("click", () => {
@@ -277,22 +378,34 @@ class ThemeSwitcher {
         });
     }
 
+    /**
+     * Sets the active theme.
+     * @param {string} themeName - The name of the theme to apply.
+     */
     setTheme(themeName) {
         this.html.setAttribute("data-theme", themeName);
     }
 
+    /**
+     * Saves the selected theme to localStorage.
+     * @param {string} themeName - The name of the theme to save.
+     */
     saveThemeToLocalStorage(themeName) {
         localStorage.setItem("theme", themeName);
     }
 
+    /**
+     * Retrieves the saved theme from localStorage.
+     * @returns {string|null} The saved theme name or null if none.
+     */
     getThemeFromLocalStorage() {
         return localStorage.getItem("theme");
     }
 }
 
-
-
-// Instantiating the classes
+/**
+ * Instantiates the application classes and initializes the app.
+ */
 const todoItemFormatter = new TodoItemFormatter();
 const todoManager = new TodoManager(todoItemFormatter);
 const uiManager = new UIManager(todoManager, todoItemFormatter);
